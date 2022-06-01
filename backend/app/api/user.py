@@ -2,7 +2,7 @@ from . import api
 from .. import cur, conn
 from flask import jsonify, request
 from psycopg2 import extras as ex
-from ..model import UserInfo
+from ..model import UserInfo,ManagerInfo
 
 
 # 这是注册用户的接口
@@ -63,13 +63,56 @@ def login():
 # 这是管理员登录的接口
 @api.route("/mlogin", methods=["POST"])
 def manager_login():
-    pass
+    manager = ManagerInfo()
+    manager.managername = request.form.get('managername')
+    manager.pwd = request.form.get('password')
+    if manager.managername is None or manager.pwd is None:
+        return jsonify({
+            "msg": "信息不能填写为空"
+        }),400
+    sql = "select pwd from manager where mname = %s;"
 
 
 # 这是管理员注册的接口
 @api.route("/mregister", methods=["POST"])
 def manager_register():
-    pass
+    managername = request.form.get('managername')
+    password = request.form.get('password')
+    password2 = request.form.get('password2')
+    gender = request.form.get('gender')
+    email = request.form.get('email')
+    if managername is None or password is None or password2 is None or gender is None or email is None:
+        return jsonify({
+            "msg": "注册时不允许有填写内容为空!"
+        }), 400
+    if password != password2:
+        return jsonify({
+            "msg": "注册时两次密码输入不一致"
+        }), 400
+    cur.execute("select mname from manager;")
+    rows = cur.fetchall()
+    print(rows)
+    for row in rows:
+        if row[0] == managername:
+            return jsonify({
+                "msg": "本昵称已经被使用"
+            }), 400
+
+    g = True
+    if gender == '男':
+        g = True
+    else:
+        g = False
+    values = []
+    values.append((managername, password, g, email))
+    sql = "Insert into manager (mname, pwd, gender, email, mark) values %s;"
+    # cur.execute("Insert into manager (mname, pwd, gender, email) values (%s, %s, %d, %s);", values)
+    ex.execute_values(cur, sql, values)
+    conn.commit()
+    # print(values)
+    return jsonify({
+        "msg": "注册成功"
+    }), 200
 
 
 # 这是展示的主界面，登录进去后，首先展示的便是所有人发布的博客信息
