@@ -23,7 +23,7 @@ def register():
         }), 400
     cur.execute("select uname from user_info;")
     rows = cur.fetchall()
-    print(rows)
+    # print(rows)
     for row in rows:
         if row[0] == username:
             return jsonify({
@@ -58,30 +58,53 @@ def login():
             "msg": "信息不能填写为空"
         }), 400
     sql = "select pwd from user_info where uname = %s;"
+    cur.execute(r"select id, pwd from user_info where uname = '%s';" % user.username)
+    rows = cur.fetchall()
+    for row in rows:
+        if row[1] == user.pwd:
+            return jsonify({
+                "msg": "登入成功",
+                "id": rows[0][0]
+            }), 200
+    return jsonify({
+        "msg": "登入信息有误"
+    }), 400
+
 
 
 # 这是管理员登录的接口
 @api.route("/mlogin", methods=["POST"])
 def manager_login():
     manager = ManagerInfo()
-    manager.managername = request.form.get('managername')
+    manager.managername = request.form.get('username')
     manager.pwd = request.form.get('password')
     if manager.managername is None or manager.pwd is None:
         return jsonify({
             "msg": "信息不能填写为空"
         }),400
     sql = "select pwd from manager where mname = %s;"
+    cur.execute(r"select id, pwd from manager where mname = '%s';" % manager.managername)
+    rows = cur.fetchall()
+    for row in rows:
+        if row[1] == manager.pwd:
+            return jsonify({
+                "msg": "登入成功",
+                "id": rows[0][0]
+            }), 200
+    return jsonify({
+        "msg": "登入信息有误"
+    }), 400
 
 
 # 这是管理员注册的接口
 @api.route("/mregister", methods=["POST"])
 def manager_register():
-    managername = request.form.get('managername')
+    username = request.form.get('username')
     password = request.form.get('password')
     password2 = request.form.get('password2')
     gender = request.form.get('gender')
     email = request.form.get('email')
-    if managername is None or password is None or password2 is None or gender is None or email is None:
+    if username is None or password is None or password2 is None or gender is None or email is None:
         return jsonify({
             "msg": "注册时不允许有填写内容为空!"
         }), 400
@@ -90,10 +113,11 @@ def manager_register():
             "msg": "注册时两次密码输入不一致"
         }), 400
     cur.execute("select mname from manager;")
+    # conn.commit()
     rows = cur.fetchall()
     print(rows)
     for row in rows:
-        if row[0] == managername:
+        if row[0] == username:
             return jsonify({
                 "msg": "本昵称已经被使用"
             }), 400
@@ -104,8 +128,8 @@ def manager_register():
     else:
         g = False
     values = []
-    values.append((managername, password, g, email))
-    sql = "Insert into manager (mname, pwd, gender, email, mark) values %s;"
+    values.append((username, password, g, email))
+    sql = "Insert into manager (mname, pwd, gender, email) values %s;"
     # cur.execute("Insert into manager (mname, pwd, gender, email) values (%s, %s, %d, %s);", values)
     ex.execute_values(cur, sql, values)
     conn.commit()
@@ -118,7 +142,21 @@ def manager_register():
 # 这是展示的主界面，登录进去后，首先展示的便是所有人发布的博客信息
 @api.route("/home/log", methods=["GET"])
 def home_info():
-    pass
+    # sql = "Select * from log_info"
+    cur.execute("Select * from log_info;")  # 对博客表做查询操作,将所有人的博客信息提取出来
+    rows = cur.fetchall()
+
+    # if rows is None:  # 表示当前没有博客信息
+    #     return jsonify({
+    #         "masg": "当前没有博客信息"
+    #     }), 400
+
+    list1 = []
+    for row in rows:  # 把提取的博客信息展示
+        content = {'log_id': row[0], 'model_id': row[1], 'user_id': row[2], 'title': row[3], 'create_time': row[5]}
+        list1.append(content)
+
+    return jsonify(list1), 200
 
 
 # 这里是通过点击id对博客的详细内容进行查看，同时也是展示了其相关的评论
@@ -165,7 +203,7 @@ def get_photo():
 
 # 这里是用过点击照片查看详情
 @api.route("/home/my_photo/get/<int:id>")
-def my_photo()
+def my_photo():
     pass
 
 
