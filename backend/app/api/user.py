@@ -165,14 +165,6 @@ def log_info(id):
     cur.execute(r"select * from comment_info where log_id = %s;" % log_id)
     rows2 = cur.fetchall()
     list1 = []
-    # if rows2 is None:
-    #     return jsonify({
-    #         "msg": "暂时没有评论",
-    #         "user_name": user_name,
-    #         "title": rows[0][3],
-    #         "content": rows[0][4],
-    #         "log_time": rows[0][5]
-    #     }), 200
     for row in rows2:
         content = {'comment_id': row[0],  'context': row[3], 'time': row[4]}
         list1.append(content)
@@ -187,20 +179,21 @@ def log_info(id):
 
 
 # 这里是在博客内容下发布评论
-@api.route("/home/log/<int:id>/comment", methods=["GET"])
-def post_comment():
+@api.route("/home/log/<int:id>/comment", methods=["POST"])
+def post_comment(id):
     # 从前端获取评论内容,博客号,和用户号
     context = request.form.get("comment")
-    log_id = request.form.get("logid")
-    user_id = request.form.get("userid")
+    user_id = request.form.get("user_id")
+    print(user_id, context)
+    log_id = id
 
-    if context is None:
+    if context is None or user_id is None:
         return ({
-            "msg": "未输入评论内容"
+            "msg": "存在字段为空"
         }), 400
 
     sql = "Insert into comment_info (log_id,user_id,context) values(%d, %d, %s);"
-    cur.execute(r"Insert into comment_info (log_id,user_id,context) values('%d', '%d', '%s');" % log_id % user_id % context)
+    cur.execute(r"Insert into comment_info (log_id,user_id,context) values(%s, %s, '%s');" % (log_id, user_id, context))
 
     conn.commit()
 
