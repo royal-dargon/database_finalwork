@@ -139,7 +139,7 @@ def manager_register():
 
 
 # 这是展示的主界面，登录进去后，首先展示的便是所有人发布的博客信息
-@api.route("/home/log", methods=["GET"])
+@api.route("/home/blog", methods=["GET"])
 def home_info():
     cur.execute("Select * from log_info;")  # 对博客表做查询操作,将所有人的博客信息提取出来
     rows = cur.fetchall()
@@ -152,7 +152,7 @@ def home_info():
 
 
 # 这里是通过点击id对博客的详细内容进行查看，同时也是展示了其相关的评论
-@api.route("/home/log/<int:id>", methods=["GET"])
+@api.route("/home/blog/<int:id>", methods=["GET"])
 def log_info(id):
     # 先从前端获取博客id号
     log_id = id
@@ -179,7 +179,7 @@ def log_info(id):
 
 
 # 这里是在博客内容下发布评论
-@api.route("/home/log/<int:id>/comment", methods=["POST"])
+@api.route("/home/blog/<int:id>/comment", methods=["POST"])
 def post_comment(id):
     # 从前端获取评论内容,博客号,和用户号
     context = request.form.get("comment")
@@ -203,7 +203,7 @@ def post_comment(id):
 
 
 # 这里是用户发布博客
-@api.route("/home/post_log/<int:id>", methods=["POST"])
+@api.route("/home/blog/<int:id>", methods=["POST"])
 def post_log(id):
     blog = LogInfo()
     blog.user_id = id
@@ -223,44 +223,44 @@ def post_log(id):
     }), 200
 
 
-# 这里是查看自己的模板
-@api.route("/home/my_model/<int:id>", methods=["GET"])
-def my_model(id):
+# 这是用户查看自己发布的博客
+@api.route("/home/my_blog", methods=['GET'])
+def user_my_log():
     pass
 
 
-# 这里是查看所有的模板信息
-@api.route("/home/model", methods=["GET"])
-def all_model():
+# 这是用户查看自己发布的博客的详情
+@api.route("/home/my_blog/<int:id>", methods=['GET'])
+def user_my_blog_info(id):
     pass
 
 
-# 这里是对自己想要的模板进行添加
-@api.route("/home/model/<int:id>")
-def get_model():
+# 这是用户删除自己发布的博客
+@api.route("/home/my_blog/<int:id>", methods=['DELETE'])
+def user_delete_blog(id):
     pass
 
 
-# 这里是查看自己的相册
-@api.route("/home/my_photo")
-def get_photo():
-    pass
-
-
-# 这里是用过点击照片查看详情
-@api.route("/home/my_photo/get/<int:id>")
-def my_photo():
-    pass
-
-
-# 这里是对相册进行添加的操作
-@api.route("/home/my_photo/put", methods=["POST"])
-def put_photos():
-    pass
-
-
-# 这里是对相册进行删除的操作
-@api.route("/home/my_photo/delete/<int:id>")
-def del_photo(id):
-    pass
+# # 这里是查看自己的相册
+# @api.route("/home/my_photo")
+# def get_photo():
+#     pass
+#
+#
+# # 这里是用过点击照片查看详情
+# @api.route("/home/my_photo/get/<int:id>")
+# def my_photo():
+#     pass
+#
+#
+# # 这里是对相册进行添加的操作
+# @api.route("/home/my_photo/put", methods=["POST"])
+# def put_photos():
+#     pass
+#
+#
+# # 这里是对相册进行删除的操作
+# @api.route("/home/my_photo/delete/<int:id>")
+# def del_photo(id):
+#     pass
 
