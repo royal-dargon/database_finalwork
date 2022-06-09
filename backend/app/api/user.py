@@ -184,7 +184,6 @@ def post_comment(id):
     # 从前端获取评论内容,博客号,和用户号
     context = request.form.get("comment")
     user_id = request.form.get("user_id")
-    print(user_id, context)
     log_id = id
 
     if context is None or user_id is None:
@@ -226,7 +225,17 @@ def post_log(id):
 # 这是用户查看自己发布的博客
 @api.route("user/home/my_blog", methods=['GET'])
 def user_my_log():
-    pass
+    user_id = request.form.get('user_id')
+    cur.execute(r"select * from log_info where user_id = %s;" % user_id)
+    rows = cur.fetchall()
+    res_list = []
+    for row in rows:
+        content = {"log_id": row[0], "title": row[3], "time": row[5]}
+        res_list.append(content)
+    return jsonify({
+        "msg": "查询成功",
+        "blog": res_list
+    }), 200
 
 
 # 这是用户查看自己发布的博客的详情
