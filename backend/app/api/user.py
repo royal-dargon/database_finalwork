@@ -6,7 +6,7 @@ from ..model import UserInfo,ManagerInfo, LogInfo
 
 
 # 这是注册用户的接口
-@api.route("/register", methods=["POST"])
+@api.route("user/register", methods=["POST"])
 def register():
     username = request.form.get('username')
     password = request.form.get('password')
@@ -48,7 +48,7 @@ def register():
 
 
 # 这是登录的接口
-@api.route("/login", methods=["POST"])
+@api.route("user/login", methods=["POST"])
 def login():
     user = UserInfo()
     user.username = request.form.get('username')
@@ -72,7 +72,7 @@ def login():
 
 
 # 这是管理员登录的接口
-@api.route("/mlogin", methods=["POST"])
+@api.route("manager/login", methods=["POST"])
 def manager_login():
     manager = ManagerInfo()
     manager.managername = request.form.get('username')
@@ -96,7 +96,7 @@ def manager_login():
 
 
 # 这是管理员注册的接口
-@api.route("/mregister", methods=["POST"])
+@api.route("manager/register", methods=["POST"])
 def manager_register():
     username = request.form.get('username')
     password = request.form.get('password')
@@ -139,7 +139,7 @@ def manager_register():
 
 
 # 这是展示的主界面，登录进去后，首先展示的便是所有人发布的博客信息
-@api.route("/home/blog", methods=["GET"])
+@api.route("user/home/blog", methods=["GET"])
 def home_info():
     cur.execute("Select * from log_info;")  # 对博客表做查询操作,将所有人的博客信息提取出来
     rows = cur.fetchall()
@@ -152,7 +152,7 @@ def home_info():
 
 
 # 这里是通过点击id对博客的详细内容进行查看，同时也是展示了其相关的评论
-@api.route("/home/blog/<int:id>", methods=["GET"])
+@api.route("user/home/blog/<int:id>", methods=["GET"])
 def log_info(id):
     # 先从前端获取博客id号
     log_id = id
@@ -179,7 +179,7 @@ def log_info(id):
 
 
 # 这里是在博客内容下发布评论
-@api.route("/home/blog/<int:id>/comment", methods=["POST"])
+@api.route("user/home/blog/<int:id>/comment", methods=["POST"])
 def post_comment(id):
     # 从前端获取评论内容,博客号,和用户号
     context = request.form.get("comment")
@@ -203,7 +203,7 @@ def post_comment(id):
 
 
 # 这里是用户发布博客
-@api.route("/home/blog/<int:id>", methods=["POST"])
+@api.route("user/home/blog/<int:id>", methods=["POST"])
 def post_log(id):
     blog = LogInfo()
     blog.user_id = id
@@ -224,22 +224,33 @@ def post_log(id):
 
 
 # 这是用户查看自己发布的博客
-@api.route("/home/my_blog", methods=['GET'])
+@api.route("user/home/my_blog", methods=['GET'])
 def user_my_log():
     pass
 
 
 # 这是用户查看自己发布的博客的详情
-@api.route("/home/my_blog/<int:id>", methods=['GET'])
+@api.route("user/home/my_blog/<int:id>", methods=['GET'])
 def user_my_blog_info(id):
     pass
 
 
 # 这是用户删除自己发布的博客
-@api.route("/home/my_blog/<int:id>", methods=['DELETE'])
+@api.route("user/home/my_blog/<int:id>", methods=['DELETE'])
 def user_delete_blog(id):
     pass
 
+
+# 这是用户查看管理员发布的日志的接口
+@api.route("user/home/log", methods=['GET'])
+def user_log():
+    pass
+
+
+# 这是用户查看管理员发布的日志的详细信息的接口
+@api.route("user/home/log/<int:id>", methods=['GET'])
+def user_log_info(id):
+    pass
 
 # # 这里是查看自己的相册
 # @api.route("/home/my_photo")
