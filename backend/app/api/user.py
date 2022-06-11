@@ -8,19 +8,19 @@ from ..model import UserInfo,ManagerInfo, LogInfo
 # 这是注册用户的接口
 @api.route("user/register", methods=["POST"])
 def register():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    password2 = request.form.get('password2')
-    gender = request.form.get('gender')
-    email = request.form.get('email')
-    if username is None or password is None or password2 is None or gender is None or email is None:
+    info = request.get_json()
+    username = info['name']
+    password = info['password']
+    gender = info['gender']
+    email = info['email']
+    if username is None or password is None or gender is None or email is None:
         return jsonify({
             "msg": "注册时不允许有填写内容为空!"
         }), 400
-    if password != password2:
-        return jsonify({
-            "msg": "注册时两次密码输入不一致"
-        }), 400
+    # if password != password2:
+    #     return jsonify({
+    #         "msg": "注册时两次密码输入不一致"
+    #     }), 400
     cur.execute("select uname from user_info;")
     rows = cur.fetchall()
     # print(rows)
@@ -51,8 +51,9 @@ def register():
 @api.route("user/login", methods=["POST"])
 def login():
     user = UserInfo()
-    user.username = request.form.get('username')
-    user.pwd = request.form.get('password')
+    info = request.get_json()
+    user.pwd = info['password']
+    user.username = info['name']
     if user.username is None or user.pwd is None:
         return jsonify({
             "msg": "信息不能填写为空"
@@ -75,9 +76,10 @@ def login():
 @api.route("manager/login", methods=["POST"])
 def manager_login():
     manager = ManagerInfo()
-    manager.managername = request.form.get('username')
-    manager.pwd = request.form.get('password')
-    if manager.managername is None or manager.pwd is None:
+    info = request.get_json()
+    manager.pwd = info['password']
+    manager.username = info['name']
+    if manager.username is None or manager.pwd is None:
         return jsonify({
             "msg": "信息不能填写为空"
         }), 400
@@ -98,12 +100,12 @@ def manager_login():
 # 这是管理员注册的接口
 @api.route("manager/register", methods=["POST"])
 def manager_register():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    password2 = request.form.get('password2')
-    gender = request.form.get('gender')
-    email = request.form.get('email')
-    if username is None or password is None or password2 is None or gender is None or email is None:
+    info = request.get_json()
+    username = info['name']
+    password = info['password']
+    gender = info['gender']
+    email = info['email']
+    if username is None or password is None or gender is None or email is None:
         return jsonify({
             "msg": "注册时不允许有填写内容为空!"
         }), 400
@@ -179,11 +181,13 @@ def log_info(id):
 
 
 # 这里是在博客内容下发布评论
-@api.route("user/home/blog/<int:id>/comment", methods=["POST"])
-def post_comment(id):
+@api.route("user/home/blog/<int:id>/comment/<int:uid>", methods=["POST"])
+def post_comment(id, uid):
     # 从前端获取评论内容,博客号,和用户号
-    context = request.form.get("comment")
-    user_id = request.form.get("user_id")
+    info = request.get_json()
+    context = info['comment']
+    user_id = uid
+    # user_id = info['user_id']
     log_id = id
 
     if context is None or user_id is None:
@@ -206,8 +210,9 @@ def post_comment(id):
 def post_log(id):
     blog = LogInfo()
     blog.user_id = id
-    blog.title = request.form.get('title')
-    blog.content = request.form.get('content')
+    info = request.get_json()
+    blog.title = info['title']
+    blog.content = info['content']
     # blog.model_id = request.form.get('model_id')
     # 现阶段是默认这个数值为1， 后期可以根据选择进行更改
     blog.model_id = 1
@@ -223,9 +228,9 @@ def post_log(id):
 
 
 # 这是用户查看自己发布的博客
-@api.route("user/home/my_blog", methods=['GET'])
-def user_my_log():
-    user_id = request.form.get('user_id')
+@api.route("user/home/my_blog/<int:uid>", methods=['GET'])
+def user_my_log(uid):
+    user_id = uid
     cur.execute(r"select * from log_info where user_id = %s;" % user_id)
     rows = cur.fetchall()
     res_list = []
@@ -239,27 +244,61 @@ def user_my_log():
 
 
 # 这是用户查看自己发布的博客的详情
-@api.route("user/home/my_blog/<int:id>", methods=['GET'])
-def user_my_blog_info(id):
-    pass
+@api.route("user/home/my_blog/<int:uid>/<int:id>", methods=['GET'])
+def user_my_blog_info(uid, id):
+    log_id = id
+    cur.execute(r"select * from log_info where log_id = %s;" % log_id)
+    rows = cur.fetchall()
+    user_id = rows[0][2]
+    cur.execute(r"select * from user_info where user_id = %s;" % user_id)
+    rows1 = cur.fetchall()
+    return jsonify({
+        "msg": "查询成果",
+        "log_id": rows[0][0],
+        "name": rows1[0][1],
+        "title": rows[0][3],
+        "content": rows[0][4],
+        "time": rows[0][5]
+    }), 200
 
 
 # 这是用户删除自己发布的博客
-@api.route("user/home/my_blog/<int:id>", methods=['DELETE'])
-def user_delete_blog(id):
-    pass
+@api.route("user/home/my_blog/<int:uid>/<int:id>", methods=['DELETE'])
+def user_delete_blog(uid, id):
+    user_id = uid
+    log_id = id
+    cur.execute(r"delete * from log_info where log_id = %s;" % log_id)
+    conn.commit()
+    return jsonify({
+        "msg": "删除成功",
+        "user_id": user_id
+    }), 200
 
 
 # 这是用户查看管理员发布的日志的接口
 @api.route("user/home/log", methods=['GET'])
 def user_log():
-    pass
+    cur.execute(r"select * from message;")
+    rows = cur.fetchall()
+    list1 = []
+    for row in rows:  # 把提取的博客信息展示
+        content = {'message_id': row[0], 'title': row[1], 'time': row[3]}
+        list1.append(content)
 
 
 # 这是用户查看管理员发布的日志的详细信息的接口
 @api.route("user/home/log/<int:id>", methods=['GET'])
 def user_log_info(id):
-    pass
+    m_id = id
+    cur.execute(r"select * from message where message_id = %s;" % m_id)
+    rows = cur.fetchall()
+    return jsonify({
+        "msg": "查询成功",
+        "message_id": rows[0][0],
+        "title": rows[0][1],
+        "content": rows[0][2],
+        "time": rows[0][3]
+    }), 200
 
 # # 这里是查看自己的相册
 # @api.route("/home/my_photo")

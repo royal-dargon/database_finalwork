@@ -115,9 +115,9 @@ def manager_log_delete(id):
 @api.route("/manager/home/log", methods=['POST'])
 def manager_upload_log():
     # 从前端获取公告详情
-    title = request.form.get("title")
-    content = request.form.get("content")
-
+    info = request.get_json()
+    title = info['title']
+    content = info['content']
     if title is None or content is None:
         return jsonify({
             "msg": "信息不全"
@@ -178,3 +178,4 @@ def manager_blacklist_remove(id):
         "msg": "移除成功",
         "id": id
     }), 200
+
